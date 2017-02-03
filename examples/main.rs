@@ -45,10 +45,10 @@ const MIN_HEART_BEAT: u16: = 115;
  * Currently, Bluetooth does not support
  * interactions with an OS's Bluetooth LE controller.
  *
- * I initialize and PeripheralManager to mimic
- * the manager in charge of our to be found heart
- * rate device. We define it as static to
- * allow our application access to it without
+ * The PeripheralManager is initialized to mimic
+ * the manager in charge of the, to be found, heart
+ * rate device. It is decalred as static to
+ * allow the application access to it without
  * having to pass in is as arguments, thus
  * hiding this fact in a beneficial manner.
 */
@@ -65,7 +65,7 @@ unsafe {
 }
 
 /*
- * I define several functions designed
+ * Several functions are provided to
  * periodically update the peripheral device
  * with new heart rate data, thus allowing
  * an example as how to one can manage the external
@@ -96,10 +96,9 @@ fn update_hrd()
 }
 
 /*
- * I create the `HeartRateMoniter` structure to
+ * The `HeartRateMoniter` structure is created
  * represent a heart rate monitor app which runs
- * over Bluetooth Low Energy and implements my
- * my library.
+ * over Bluetooth Low Energy
 */
 
 struct HeartRateMoniter
@@ -225,8 +224,8 @@ impl HeartRateMoniter
             unsafe { adv = hrd_manager.advertise(); }
 
             /*
-             * Again, we avoid Bluetooth's transport
-             * layer and layers below that by directly passing
+             * Again, Bluetooth's transport
+             * layer and layers below are avoided by directly passing
              * data to devices. Ideally this will represent
              * the interface that a manager structure receives information
              * from its controller.
@@ -239,14 +238,13 @@ impl HeartRateMoniter
             self.manager.recieve(adv)
 
             /*
-             * We then instruct the manager to
+             * The manager is instructed to
              * scan for peripherals specifying
              * an option for a supported service
-             * we are looking
-             * (since rarely do we want any
-             * Bluetooth device near us). This is
+             * (since rarely is every Bluetooth
+             * device nearby wanted). This is
              * supported by GATT structures
-             * which allows us to discover
+             * which allows discovery of
              * attributes, supported services,
              * and various characteristics in an organized
              * manner. This becomes handy for parsing and
@@ -258,11 +256,11 @@ impl HeartRateMoniter
              * descriptions defined by the Bluetooth SIG
              * as opposed to raw 16 bit or 128 bit values.
              *
-             * In this scenario we are looking for peripherals
+             * In this scenario peripherals are searched for
              * that support the HeartRate service and pass that
-             * as an argument to the function. We receive
-             * a vector of found peripherals wrapped in
-             * the Option<> structure since there may be
+             * as an argument to the function. A
+             * vector of found peripherals wrapped in
+             * the Option<> structure is returned since there may be
              * no peers located.
              *
              * Returned peripherals contain
@@ -288,31 +286,36 @@ impl HeartRateMoniter
             );
 
             /*
-             * Although we known our manager has
-             * received at one valid
-             * advertisement we check for
-             * at least one peer being found.
+             * Although the manager has
+             * received one valid
+             * advertisement a more usual
+             * case is to check that it
+             * has
             */
-            if peripherals.len() >= 1
-            {
-                let peripheral = peripherals[0];
+            match peripherals {
+                Some(peripherals) => {
+                    let peripheral = peripherals[0];
+                    
+                    /*
+                     * Using the selected peripheral the
+                     * manager is instructed
+                     * to bond with it.
+                     *
+                     * @todo
+                     * Discussion of the bonding process
+                     */
+                    self.manager.bond(peripheral);
 
-                /*
-                 * Using the selected peripheral I
-                 * instruct the manager to bond
-                 * with it.
-                 *
-                 * Go into what happens during bonding here.
-                */
-                self.manager.bond(peripheral);
-
-                /*
-                 * We then update our structures
-                 * fields appropriately
-                */
-                self.connected = true;
-                self.peripheral = Some(peripheral);
-            }
+                    /*
+                     * The structure's
+                     * fields are updated
+                     * appropriately
+                     */
+                    self.connected = true;
+                    self.peripheral = Some(peripheral);
+                }.
+                None => {}
+            };
         }
     }
 
@@ -324,8 +327,8 @@ impl HeartRateMoniter
     /*
      * Since the application
      * is fairly simple (only an updating text
-     * display), we return this
-     * value when requested.
+     * display), this value is returned
+     * when requested.
     */
     pub fn render(&self) -> String
     {
@@ -345,11 +348,15 @@ impl HeartRateMoniter
         let now = Local::now();
 
         /*
-         * Since we don't want our
-         * app to continually request to
+         * To avoid continually requesting
+         * requesting to
          * connect with the peripheral (will use
          * fairly significant amount of resources)
-         * we create a connection gap of 5 seconds.
+         * a connection gap of 5 seconds is added.
+         *
+         * @todo
+         * do not do this; this is a bad design
+         * fix this
         */
         if self.will_re_connect(&now)
         {
@@ -391,8 +398,8 @@ impl HeartRateMoniter
      * calls go down to the controller and is requested
      * from the device's link manager.
      *
-     * If something isn't correct we'll print to the
-     * terminal a message saying what's going on.
+     * If something isn't correct a message is
+     * printed saying what's going on.
      * From here, developers may prompt the user to
      * turn Bluetooth on or inform them that
      * they are unable to use it and why and return false.
@@ -427,8 +434,11 @@ impl HeartRateMoniter
     /*
      * Not necessarily to be used for when the application
      * is to be turned closed since
-     * Rust will allow for graceful deallocation
+     * Rust will allow for deallocation
      * of structures once a variable goes out of scope.
+     *
+     * @todo
+     * figure out what I meant above
      *
      * Allows for a type of reset of the application.
     */
